@@ -432,19 +432,31 @@ const CSS = `
 .cell {
   background: none; border: 0; padding: 0; cursor: pointer;
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-  aspect-ratio: 1 / 1; border-radius: 10px;
+  border-radius: 10px; min-width: 0; min-height: 0;
   transition: transform .12s ease-out, box-shadow .12s;
 }
 .cell:focus-visible { outline: 3px solid #fff8e1; outline-offset: 2px; }
-.board { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; padding: 6px; }
+.root { height: 100vh; height: 100svh; overflow: hidden; }
+.shell { height: 100%; display: flex; flex-direction: column; }
+.stack { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+.headrow { flex: 0 0 auto; }
+.scenebox { flex: 1 1 auto; min-height: 76px; max-height: 34svh; display: flex; }
+.meterrow { flex: 0 0 auto; }
+.boardwrap { flex: 0 0 auto; display: flex; justify-content: center; min-height: 0; }
+.board {
+  display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr);
+  gap: 4px; padding: 6px; width: 100%; aspect-ratio: 1 / 1; max-height: 54svh;
+}
 .pad { padding: 12px; }
 .btn { font-family: inherit; cursor: pointer; touch-action: manipulation; }
 @media (max-width: 430px) {
-  .pad { padding: 8px; }
+  .pad { padding: 7px; }
   .board { gap: 3px; padding: 4px; }
-  .title { font-size: 17px; }
-  .status { font-size: 13px; }
+  .title { font-size: 16px; }
+  .status { font-size: 12.5px; }
 }
+@media (max-height: 820px) { .hint { display: none; } }
+@media (max-height: 680px) { .scenebox { max-height: 30svh; } .board { max-height: 50svh; } }
 
 @keyframes fixGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .fixbar { transform: scaleX(0); animation-name: fixGrow; animation-timing-function: linear; animation-delay: 1.5s; animation-fill-mode: forwards; }
@@ -958,7 +970,7 @@ function Fireworks() {
   );
 }
 
-function Scene({ level, smashed, reg, doorOpening, fixer, onFixDone, onFixTap }) {
+function Scene({ level, smashed, reg, doorOpening, fixer, onFixDone, onFixTap, fit }) {
   const items = level.props.map((p) => (
     <Smashable
       key={p.id}
@@ -974,11 +986,13 @@ function Scene({ level, smashed, reg, doorOpening, fixer, onFixDone, onFixTap })
   const man = fixer ? (
     <Fixer key={fixer.key} x={fixer.x} y={fixer.y} work={fixer.work} onDone={onFixDone} onTap={onFixTap} />
   ) : null;
-  const box = { display: "block", height: "auto", maxHeight: "32vh" };
+  const box = fit
+    ? { display: "block", width: "100%", height: "100%" }
+    : { display: "block", width: "100%", height: "auto", maxHeight: "32vh" };
 
   if (level.kind === "room") {
     return (
-      <svg viewBox="0 0 320 210" width="100%" preserveAspectRatio="xMidYMid meet" style={box}>
+      <svg viewBox="0 0 320 210" preserveAspectRatio="xMidYMid meet" style={box}>
         <rect x="0" y="0" width="320" height="118" fill={level.wall} />
         <rect x="0" y="118" width="320" height="6" fill={level.dado} />
         <rect x="0" y="124" width="320" height="42" fill={level.low} />
@@ -992,7 +1006,7 @@ function Scene({ level, smashed, reg, doorOpening, fixer, onFixDone, onFixTap })
     );
   }
   return (
-    <svg viewBox="0 0 320 210" width="100%" preserveAspectRatio="xMidYMid meet" style={box}>
+    <svg viewBox="0 0 320 210" preserveAspectRatio="xMidYMid meet" style={box}>
       <rect x="0" y="0" width="320" height="186" fill="#a8d8ee" />
       <circle cx="276" cy="32" r="17" fill="#ffe9a8" />
       <rect x="0" y="186" width="320" height="24" fill="#6cb33f" />
@@ -1293,9 +1307,9 @@ export default function VictorianSmash() {
   if (screen === "start" || screen === "enter") {
     const entering = screen === "enter";
     return (
-      <div style={{ fontFamily: FONT, background: "#f7f3e8", minHeight: "100%", color: "#2d2318" }}>
+      <div className="root" style={{ fontFamily: FONT, background: "#f7f3e8", color: "#2d2318", overflowY: "auto" }}>
         <style>{CSS}</style>
-        <div className="wrap pad" style={{ maxWidth: 460, margin: "0 auto", textAlign: "center" }}>
+        <div className="wrap pad" style={{ maxWidth: 460, margin: "0 auto", textAlign: "center", width: "100%" }}>
           <h1 style={{ fontSize: 30, margin: "6px 0 2px", letterSpacing: "-0.02em" }}>Victorian Smash!</h1>
           <p style={{ margin: "0 0 12px", fontSize: 15 }}>Eight rooms, then the house, then the garden.</p>
           <div
@@ -1340,11 +1354,11 @@ export default function VictorianSmash() {
   }
 
   return (
-    <div style={{ fontFamily: FONT, background: "#f7f3e8", minHeight: "100%", color: "#2d2318" }}>
+    <div className="root" style={{ fontFamily: FONT, background: "#f7f3e8", color: "#2d2318" }}>
       <style>{CSS}</style>
-      <div className="wrap pad" style={{ maxWidth: 460, margin: "0 auto" }}>
-        <div ref={wrapRef} style={{ position: "relative" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+      <div className="wrap pad shell" style={{ maxWidth: 460, margin: "0 auto", width: "100%" }}>
+        <div ref={wrapRef} className="stack">
+          <div className="headrow" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <h2 className="title" style={{ fontSize: 19, margin: 0 }}>
               {level.title}
             </h2>
@@ -1377,7 +1391,7 @@ export default function VictorianSmash() {
 
           <div
             ref={sceneRef}
-            className={shaking ? "shake" : ""}
+            className={`scenebox ${shaking ? "shake" : ""}`}
             style={{
               borderRadius: 14,
               overflow: "hidden",
@@ -1385,11 +1399,11 @@ export default function VictorianSmash() {
               background: level.kind === "room" ? level.wall : "#a8d8ee",
             }}
           >
-            <Scene level={level} smashed={prog.smashed} reg={reg} fixer={fixer} onFixDone={fixDone} onFixTap={fixTap} />
+            <Scene level={level} smashed={prog.smashed} reg={reg} fixer={fixer} onFixDone={fixDone} onFixTap={fixTap} fit />
           </div>
 
-          <div style={{ margin: "9px 0" }}>
-            <div className="status" style={{ fontSize: 15, marginBottom: 5 }}>
+          <div className="meterrow">
+            <div className="status" style={{ fontSize: 15, marginBottom: 4 }}>
               {current ? (
                 <>
                   Smashing {current.name} &nbsp;
@@ -1406,6 +1420,7 @@ export default function VictorianSmash() {
             </div>
           </div>
 
+          <div className="boardwrap">
           <div className="board" style={{ background: "#5d4229", border: "3px solid #2d2318", borderRadius: 14, opacity: playing ? 1 : 0.55 }}>
             {grid.map((row, r) =>
               row.map((cell, c) => {
@@ -1432,8 +1447,9 @@ export default function VictorianSmash() {
               })
             )}
           </div>
+          </div>
 
-          <p className="status" style={{ fontSize: 14, lineHeight: 1.45, margin: "9px 0 0" }}>
+          <p className="hint status" style={{ fontSize: 14, lineHeight: 1.45, margin: 0 }}>
             Swap two blocks that touch. Three or more of a colour fly at the room. Tap a workman to chase him off
             before he puts something back.
           </p>
