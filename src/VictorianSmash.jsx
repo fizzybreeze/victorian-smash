@@ -527,6 +527,13 @@ ART.fixerBody = (
 const COLS = 9;
 const ROWS = 9;
 const FY = 172;
+// The 320x210 drawing is centred in the scene box, so a box of a different
+// shape leaves bare bars down the sides or along the top and bottom. Painting
+// the background bands this far past the viewBox fills those bars. Anything
+// that spills over is clipped at the edge of the svg.
+const BLEED = 600;
+const BX = -BLEED;
+const BW = 320 + BLEED * 2;
 const FIX_WALK = 1500;
 const fixWorkMs = (i) => Math.max(2800, 4000 - i * 150);
 const fixEvery = (i) => Math.max(8, 12 - i);
@@ -993,13 +1000,13 @@ function Scene({ level, smashed, reg, doorOpening, fixer, onFixDone, onFixTap, f
   if (level.kind === "room") {
     return (
       <svg viewBox="0 0 320 210" preserveAspectRatio="xMidYMid meet" style={box}>
-        <rect x="0" y="0" width="320" height="118" fill={level.wall} />
-        <rect x="0" y="118" width="320" height="6" fill={level.dado} />
-        <rect x="0" y="124" width="320" height="42" fill={level.low} />
-        <rect x="0" y="164" width="320" height="8" fill="#efe7d8" />
-        <rect x="0" y={FY} width="320" height={210 - FY} fill={level.floor} />
-        <line x1="0" y1={FY + 12} x2="320" y2={FY + 12} stroke="rgba(0,0,0,.15)" strokeWidth="2" />
-        <line x1="0" y1={FY + 26} x2="320" y2={FY + 26} stroke="rgba(0,0,0,.15)" strokeWidth="2" />
+        <rect x={BX} y={-BLEED} width={BW} height={118 + BLEED} fill={level.wall} />
+        <rect x={BX} y="118" width={BW} height="6" fill={level.dado} />
+        <rect x={BX} y="124" width={BW} height="42" fill={level.low} />
+        <rect x={BX} y="164" width={BW} height="8" fill="#efe7d8" />
+        <rect x={BX} y={FY} width={BW} height={210 - FY + BLEED} fill={level.floor} />
+        <line x1={BX} y1={FY + 12} x2={BX + BW} y2={FY + 12} stroke="rgba(0,0,0,.15)" strokeWidth="2" />
+        <line x1={BX} y1={FY + 26} x2={BX + BW} y2={FY + 26} stroke="rgba(0,0,0,.15)" strokeWidth="2" />
         {items}
         {man}
       </svg>
@@ -1007,10 +1014,10 @@ function Scene({ level, smashed, reg, doorOpening, fixer, onFixDone, onFixTap, f
   }
   return (
     <svg viewBox="0 0 320 210" preserveAspectRatio="xMidYMid meet" style={box}>
-      <rect x="0" y="0" width="320" height="186" fill="#a8d8ee" />
+      <rect x={BX} y={-BLEED} width={BW} height={186 + BLEED} fill="#a8d8ee" />
       <circle cx="276" cy="32" r="17" fill="#ffe9a8" />
-      <rect x="0" y="186" width="320" height="24" fill="#6cb33f" />
-      <rect x="0" y="186" width="320" height="5" fill="#579430" />
+      <rect x={BX} y="186" width={BW} height={210 - 186 + BLEED} fill="#6cb33f" />
+      <rect x={BX} y="186" width={BW} height="5" fill="#579430" />
       {items}
       {man}
     </svg>
