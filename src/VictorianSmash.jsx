@@ -399,7 +399,7 @@ ART.railings = (
 const FONT = '"Trebuchet MS", "Lucida Grande", Verdana, sans-serif';
 
 const CSS = `
-.wrap * { box-sizing: border-box; }
+.wrap, .wrap * { box-sizing: border-box; }
 @keyframes smashOut {
   0%   { transform: translate(0,0) rotate(0deg) scale(1); opacity: 1; }
   35%  { transform: translate(0,-10px) rotate(-8deg) scale(1.08); opacity: 1; }
